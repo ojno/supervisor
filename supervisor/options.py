@@ -842,6 +842,8 @@ class ServerOptions(Options):
 
             environment = dict_of_key_value_pairs(
                 expand(environment_str, expansions, 'environment'))
+            
+            expansions.update({"ENV_" + k: v for k, v in environment.items()})
 
             if directory:
                 directory = expand(directory, expansions, 'directory')
