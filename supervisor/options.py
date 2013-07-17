@@ -1947,10 +1947,34 @@ class SignalReceiver:
         return sig
 
 # miscellaneous utility functions
+_varprog = None
 
 def expand(s, expansions, name):
     try:
-        return s % expansions
+        s = s % expansions
+        global _varprog
+        if '$' not in s:
+            return s
+        if not _varprog:
+            import re
+            _varprog = re.compile(r'\$(\w+|\{[^}]*\})')
+        i = 0
+        while True:
+            m = _varprog.search(s, i)
+            if not m:
+                break
+            i, j = m.span(0)
+            name = m.group(1)
+            if name.startswith('{') and name.endswith('}'):
+                name = name[1:-1]
+            if name in expansions:
+                tail = s[j:]
+                s = s[:i] + expansions[name]
+                i = len(s)
+                s += tail
+            else:
+                i = j
+        return s
     except KeyError:
         raise ValueError(
             'Format string %r for %r contains names which cannot be '
